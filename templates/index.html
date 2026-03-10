@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FruitSense — Ripeness Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:       #fdf6ec;
+      --paper:       #f7ede0;
+      --bark:        #3b2a1a;
+      --moss:        #4a6741;
+      --leaf:        #6a9b5e;
+      --sun:         #e8a020;
+      --blush:       #d9604a;
+      --mist:        #c8d8c0;
+      --ink:         #2c1f10;
+      --accent:      #b84a2e;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── BACKGROUND TEXTURE ───────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(106,155,94,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 90% 80%, rgba(232,160,32,.10) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ─── LAYOUT WRAPPER ───────────────────────────── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HEADER ───────────────────────────────────── */
+    header {
+      padding: 2.5rem 3rem 1.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      border-bottom: 1.5px solid rgba(59,42,26,.12);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      color: var(--bark);
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--leaf); font-style: italic; }
+
+    .tagline {
+      font-size: 0.85rem;
+      font-weight: 300;
+      color: var(--moss);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ─── HERO ─────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem 2rem;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      color: var(--bark);
+      max-width: 700px;
+      margin: 0 auto 1.2rem;
+    }
+
+    .hero-title em {
+      color: var(--leaf);
+      font-style: italic;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: #6b5240;
+      max-width: 480px;
+      margin: 0 auto 3rem;
+      line-height: 1.7;
+    }
+
+    /* ─── FRUIT PILLS ──────────────────────────────── */
+    .fruit-pills {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 3.5rem;
+    }
+
+    .pill {
+      background: rgba(74,103,65,.1);
+      border: 1px solid rgba(74,103,65,.25);
+      color: var(--moss);
+      border-radius: 999px;
+      padding: 0.35rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ─── UPLOAD CARD ──────────────────────────────── */
+    .card-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 0 1.5rem 5rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(59,42,26,.1);
+      border-radius: 24px;
+      box-shadow:
+        0 4px 24px rgba(59,42,26,.08),
+        0 1px 3px rgba(59,42,26,.06);
+      width: 100%;
+      max-width: 560px;
+      padding: 2.5rem;
+      transition: box-shadow .3s;
+    }
+
+    /* ─── DROP ZONE ────────────────────────────────── */
+    .drop-zone {
+      border: 2px dashed rgba(74,103,65,.35);
+      border-radius: 16px;
+      background: rgba(200,216,192,.15);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s;
+      position: relative;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--leaf);
+      background: rgba(106,155,94,.1);
+      transform: translateY(-2px);
+    }
+
+    .drop-icon {
+      font-size: 3rem;
+      margin-bottom: 0.8rem;
+      display: block;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    .drop-zone h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--bark);
+      margin-bottom: 0.4rem;
+    }
+
+    .drop-zone p {
+      font-size: 0.85rem;
+      color: #8a6f55;
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+    }
+
+    /* ─── PREVIEW ──────────────────────────────────── */
+    #preview-wrap {
+      display: none;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    #preview-wrap img {
+      max-height: 240px;
+      max-width: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 4px 20px rgba(59,42,26,.15);
+    }
+
+    .change-btn {
+      display: inline-block;
+      margin-top: 0.7rem;
+      font-size: 0.8rem;
+      color: var(--moss);
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    /* ─── SCAN BUTTON ──────────────────────────────── */
+    .scan-btn {
+      display: block;
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: var(--moss);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(74,103,65,.35);
+    }
+
+    .scan-btn:hover:not(:disabled) {
+      background: var(--bark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59,42,26,.3);
+    }
+
+    .scan-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    /* ─── LOADER ───────────────────────────────────── */
+    .loader {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      color: var(--moss);
+      font-size: 0.9rem;
+    }
+
+    .loader.active { display: flex; }
+
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(74,103,65,.2);
+      border-top-color: var(--moss);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── RESULT CARD ──────────────────────────────── */
+    #result {
+      display: none;
+      margin-top: 1.8rem;
+      padding: 1.5rem;
+      border-radius: 14px;
+      animation: slideUp .4s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity:0; transform: translateY(12px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    #result.ripe {
+      background: linear-gradient(135deg, rgba(106,155,94,.15), rgba(74,103,65,.1));
+      border: 1.5px solid rgba(74,103,65,.3);
+    }
+
+    #result.unripe {
+      background: linear-gradient(135deg, rgba(232,160,32,.15), rgba(184,74,46,.08));
+      border: 1.5px solid rgba(232,160,32,.4);
+    }
+
+    #result.error {
+      background: rgba(184,74,46,.08);
+      border: 1.5px solid rgba(184,74,46,.3);
+    }
+
+    .result-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .result-label.ripe   { color: var(--moss); }
+    .result-label.unripe { color: var(--sun); }
+    .result-label.error  { color: var(--accent); }
+
+    .result-confidence {
+      font-size: 0.85rem;
+      color: #7a6050;
+      margin-bottom: 0.8rem;
+    }
+
+    /* ─── CONFIDENCE BAR ───────────────────────────── */
+    .bar-wrap {
+      background: rgba(59,42,26,.08);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+      width: 0%;
+    }
+
+    .bar-fill.ripe   { background: linear-gradient(90deg, var(--leaf), var(--moss)); }
+    .bar-fill.unripe { background: linear-gradient(90deg, var(--sun), #c97a10); }
+
+    .result-tip {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    /* ─── ALL SCORES ───────────────────────────────── */
+    .all-scores {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(59,42,26,.1);
+    }
+
+    .all-scores h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8a6f55;
+      margin-bottom: 0.6rem;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.82rem;
+    }
+
+    .score-name {
+      width: 130px;
+      color: var(--bark);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .score-bar-wrap {
+      flex: 1;
+      background: rgba(59,42,26,.08);
+      border-radius: 999px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--mist);
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+    }
+
+    .score-pct {
+      width: 38px;
+      text-align: right;
+      color: #7a6050;
+    }
+
+    /* ─── HOW IT WORKS ─────────────────────────────── */
+    .how {
+      background: var(--paper);
+      border-top: 1.5px solid rgba(59,42,26,.08);
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .how h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--bark);
+      margin-bottom: 2.5rem;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .step {
+      flex: 1;
+      min-width: 180px;
+      max-width: 220px;
+    }
+
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--moss);
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .step h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--bark);
+      margin-bottom: 0.4rem;
+    }
+
+    .step p {
+      font-size: 0.85rem;
+      color: #6b5240;
+      line-height: 1.6;
+    }
+
+    /* ─── FOOTER ───────────────────────────────────── */
+    footer {
+      padding: 1.5rem 3rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: #a08060;
+      border-top: 1px solid rgba(59,42,26,.08);
+    }
+
+    /* ─── RESPONSIVE ───────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 1.5rem; flex-direction: column; gap: .3rem; }
+      .hero { padding: 2.5rem 1.2rem 1.5rem; }
+      .card { padding: 1.5rem; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Fruit<span>Sense</span></div>
+    <div class="tagline">AI-Powered Ripeness Detection</div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1 class="hero-title">
+      Is your fruit <em>ready</em><br>to eat?
+    </h1>
+    <p class="hero-sub">
+      Upload a photo of your fruit and our trained AI model will instantly tell you
+      whether it's ripe, unripe, or somewhere in between.
+    </p>
+
+    <div class="fruit-pills">
+      <span class="pill">🍌 Banana</span>
+      <span class="pill">🍓 Strawberry</span>
+      <span class="pill">🥑 Avocado</span>
+    </div>
+  </section>
+
+  <!-- UPLOAD CARD -->
+  <div class="card-wrap">
+    <div class="card">
+
+      <!-- Drop zone -->
+      <div class="drop-zone" id="dropZone">
+        <span class="drop-icon">🍎</span>
+        <h3>Drop your fruit photo here</h3>
+        <p>or click to browse — JPG, PNG, WEBP</p>
+        <input type="file" id="fileInput" accept="image/*" />
+      </div>
+
+      <!-- Image preview -->
+      <div id="preview-wrap">
+        <img id="preview" src="" alt="Your fruit" />
+        <br/>
+        <button class="change-btn" id="changeBtn">Choose a different photo</button>
+      </div>
+
+      <!-- Scan button -->
+      <button class="scan-btn" id="scanBtn" disabled>
+        Analyse Ripeness
+      </button>
+
+      <!-- Loader -->
+      <div class="loader" id="loader">
+        <div class="spinner"></div>
+        Scanning your fruit…
+      </div>
+
+      <!-- Result -->
+      <div id="result">
+        <div class="result-label" id="resultLabel"></div>
+        <div class="result-confidence" id="resultConfidence"></div>
+        <div class="bar-wrap">
+          <div class="bar-fill" id="barFill"></div>
+        </div>
+        <div class="result-tip" id="resultTip"></div>
+        <div class="all-scores" id="allScores" style="display:none"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Upload a photo</h3>
+        <p>Take or choose a clear photo of your fruit against any background.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>AI analyses it</h3>
+        <p>Our machine learning model — trained on real fruit images — examines colour, texture, and shape.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Get your answer</h3>
+        <p>Instantly see whether your fruit is ripe or not, with a confidence score and what to do next.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Built with Flask &amp; TensorFlow · Trained with Google Teachable Machine
+  </footer>
+
+</div><!-- /.page -->
+
+<script>
+  const fileInput  = document.getElementById('fileInput');
+  const dropZone   = document.getElementById('dropZone');
+  const previewWrap= document.getElementById('preview-wrap');
+  const preview    = document.getElementById('preview');
+  const changeBtn  = document.getElementById('changeBtn');
+  const scanBtn    = document.getElementById('scanBtn');
+  const loader     = document.getElementById('loader');
+  const result     = document.getElementById('result');
+  const resultLabel= document.getElementById('resultLabel');
+  const resultConf = document.getElementById('resultConfidence');
+  const barFill    = document.getElementById('barFill');
+  const resultTip  = document.getElementById('resultTip');
+  const allScores  = document.getElementById('allScores');
+
+  let selectedFile = null;
+
+  // ── Drag-and-drop visual feedback ──────────────
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) handleFile(f);
+  });
+
+  // ── File input change ───────────────────────────
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  changeBtn.addEventListener('click', () => {
+    selectedFile = null;
+    scanBtn.disabled = true;
+    previewWrap.style.display = 'none';
+    dropZone.style.display    = 'block';
+    result.style.display      = 'none';
+    fileInput.value = '';
+  });
+
+  function handleFile(file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      dropZone.style.display    = 'none';
+      previewWrap.style.display = 'block';
+      result.style.display      = 'none';
+      scanBtn.disabled = false;
+      // fun: update the drop-icon emoji based on file name
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Scan button ─────────────────────────────────
+  scanBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    scanBtn.disabled  = true;
+    loader.classList.add('active');
+    result.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+
+    try {
+      const res  = await fetch('/predict', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      loader.classList.remove('active');
+
+      if (data.error) {
+        showResult('error', '⚠️ ' + data.error, '', 0, null, '');
+      } else {
+        const category = data.label.toLowerCase().includes('unripe') ? 'unripe' : 'ripe';
+        showResult(category, data.label, data.confidence, data.confidence, data.all_scores, data.tip);
+      }
+    } catch (err) {
+      loader.classList.remove('active');
+      showResult('error', 'Connection error', '', 0, null, 'Could not reach the server. Is Flask running?');
+    }
+
+    scanBtn.disabled = false;
+  });
+
+  function showResult(category, label, confidenceNum, barWidth, scores, tip) {
+    result.className      = 'result-shown ' + category; // apply colour class
+    result.style.display  = 'block';
+    result.id             = 'result'; // keep id
+
+    resultLabel.textContent    = label;
+    resultLabel.className      = 'result-label ' + category;
+    resultConf.textContent     = confidenceNum ? `Confidence: ${confidenceNum}%` : '';
+
+    barFill.className = 'bar-fill ' + category;
+    // Animate bar after a tiny delay so transition fires
+    setTimeout(() => { barFill.style.width = barWidth + '%'; }, 50);
+
+    resultTip.textContent = tip || '';
+
+    // All scores breakdown
+    if (scores && Object.keys(scores).length > 1) {
+      allScores.style.display = 'block';
+      allScores.innerHTML = '<h4>All scores</h4>';
+      for (const [name, pct] of Object.entries(scores)) {
+        allScores.innerHTML += `
+          <div class="score-row">
+            <span class="score-name">${name}</span>
+            <div class="score-bar-wrap">
+              <div class="score-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="score-pct">${pct}%</span>
+          </div>`;
+      }
+    } else {
+      allScores.style.display = 'none';
+    }
+
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+</body>
+</html>
