@@ -33,14 +33,15 @@
       overflow-x: hidden;
     }
 
-    /* ─── BACKGROUND TEXTURE ───────────────────────── */
+    /* ─── BACKGROUND BOTANICAL PATTERN ────────────── */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0;
       background-image:
-        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(106,155,94,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(106,155,94,.13) 0%, transparent 60%),
         radial-gradient(ellipse 60% 80% at 90% 80%, rgba(232,160,32,.10) 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='none' stroke='%234a6741' stroke-width='1' opacity='0.13'%3E%3C!-- Leaf 1 top-left --%3E%3Cellipse cx='30' cy='40' rx='10' ry='22' transform='rotate(-30 30 40)'/%3E%3Cline x1='30' y1='18' x2='30' y2='62' transform='rotate(-30 30 40)'/%3E%3Cline x1='24' y1='33' x2='36' y2='33' transform='rotate(-30 30 40)'/%3E%3Cline x1='22' y1='43' x2='38' y2='43' transform='rotate(-30 30 40)'/%3E%3Cline x1='25' y1='53' x2='35' y2='53' transform='rotate(-30 30 40)'/%3E%3C!-- Stem 1 --%3E%3Cpath d='M30 62 Q40 80 35 100' stroke-width='1.2'/%3E%3C!-- Leaf 2 top-right --%3E%3Cellipse cx='210' cy='55' rx='10' ry='22' transform='rotate(25 210 55)'/%3E%3Cline x1='210' y1='33' x2='210' y2='77' transform='rotate(25 210 55)'/%3E%3Cline x1='204' y1='48' x2='216' y2='48' transform='rotate(25 210 55)'/%3E%3Cline x1='202' y1='58' x2='218' y2='58' transform='rotate(25 210 55)'/%3E%3Cline x1='205' y1='68' x2='215' y2='68' transform='rotate(25 210 55)'/%3E%3Cpath d='M210 77 Q200 95 205 115' stroke-width='1.2'/%3E%3C!-- Leaf 3 bottom-left --%3E%3Cellipse cx='55' cy='200' rx='9' ry='20' transform='rotate(15 55 200)'/%3E%3Cline x1='55' y1='180' x2='55' y2='220' transform='rotate(15 55 200)'/%3E%3Cline x1='49' y1='193' x2='61' y2='193' transform='rotate(15 55 200)'/%3E%3Cline x1='47' y1='203' x2='63' y2='203' transform='rotate(15 55 200)'/%3E%3Cline x1='50' y1='213' x2='60' y2='213' transform='rotate(15 55 200)'/%3E%3Cpath d='M55 220 Q65 235 60 250' stroke-width='1.2'/%3E%3C!-- Leaf 4 bottom-right --%3E%3Cellipse cx='220' cy='195' rx='9' ry='21' transform='rotate(-20 220 195)'/%3E%3Cline x1='220' y1='174' x2='220' y2='216' transform='rotate(-20 220 195)'/%3E%3Cline x1='214' y1='187' x2='226' y2='187' transform='rotate(-20 220 195)'/%3E%3Cline x1='212' y1='197' x2='228' y2='197' transform='rotate(-20 220 195)'/%3E%3Cline x1='215' y1='207' x2='225' y2='207' transform='rotate(-20 220 195)'/%3E%3Cpath d='M220 216 Q210 230 215 248' stroke-width='1.2'/%3E%3C!-- Leaf 5 center --%3E%3Cellipse cx='130' cy='125' rx='8' ry='18' transform='rotate(5 130 125)'/%3E%3Cline x1='130' y1='107' x2='130' y2='143' transform='rotate(5 130 125)'/%3E%3Cline x1='124' y1='119' x2='136' y2='119' transform='rotate(5 130 125)'/%3E%3Cline x1='122' y1='129' x2='138' y2='129' transform='rotate(5 130 125)'/%3E%3Cline x1='125' y1='139' x2='135' y2='139' transform='rotate(5 130 125)'/%3E%3C!-- Small dots --%3E%3Ccircle cx='80' cy='90' r='2'/%3E%3Ccircle cx='175' cy='155' r='2'/%3E%3Ccircle cx='95' cy='175' r='1.5'/%3E%3Ccircle cx='155' cy='75' r='1.5'/%3E%3Ccircle cx='45' cy='140' r='1.5'/%3E%3Ccircle cx='200' cy='130' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: auto, auto, 260px 260px;
       pointer-events: none;
     }
 
@@ -272,13 +273,55 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ─── RESULT CARD ──────────────────────────────── */
+    /* ─── RESULT CARD — FLIP ANIMATION ────────────── */
+    .flip-wrapper {
+      perspective: 1000px;
+      margin-top: 1.8rem;
+    }
+
     #result {
       display: none;
-      margin-top: 1.8rem;
       padding: 1.5rem;
       border-radius: 14px;
-      animation: slideUp .4s ease;
+      transform-style: preserve-3d;
+      animation: cardFlip .6s cubic-bezier(.4, 0, .2, 1) both;
+    }
+
+    @keyframes cardFlip {
+      0%   { opacity: 0; transform: rotateY(-90deg) scale(0.95); }
+      60%  { transform: rotateY(8deg) scale(1.01); }
+      100% { opacity: 1; transform: rotateY(0deg) scale(1); }
+    }
+
+    /* ─── BEST BEFORE BOX ──────────────────────────── */
+    .best-before {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: 10px;
+      background: rgba(59,42,26,.05);
+      border: 1px solid rgba(59,42,26,.12);
+    }
+
+    .best-before-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8a6f55;
+      margin-bottom: 0.3rem;
+    }
+
+    .best-before-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--bark);
+      font-weight: 700;
+    }
+
+    .best-before-note {
+      font-size: 0.8rem;
+      color: #7a6050;
+      margin-top: 0.2rem;
     }
 
     @keyframes slideUp {
@@ -525,14 +568,24 @@
       </div>
 
       <!-- Result -->
-      <div id="result">
-        <div class="result-label" id="resultLabel"></div>
-        <div class="result-confidence" id="resultConfidence"></div>
-        <div class="bar-wrap">
-          <div class="bar-fill" id="barFill"></div>
+      <div class="flip-wrapper">
+        <div id="result">
+          <div class="result-label" id="resultLabel"></div>
+          <div class="result-confidence" id="resultConfidence"></div>
+          <div class="bar-wrap">
+            <div class="bar-fill" id="barFill"></div>
+          </div>
+          <div class="result-tip" id="resultTip"></div>
+
+          <!-- Best Before Box -->
+          <div class="best-before" id="bestBefore">
+            <div class="best-before-title">⏱ Best Before Estimate</div>
+            <div class="best-before-value" id="bestBeforeValue"></div>
+            <div class="best-before-note" id="bestBeforeNote"></div>
+          </div>
+
+          <div class="all-scores" id="allScores" style="display:none"></div>
         </div>
-        <div class="result-tip" id="resultTip"></div>
-        <div class="all-scores" id="allScores" style="display:none"></div>
       </div>
 
     </div>
@@ -580,6 +633,30 @@
   const barFill    = document.getElementById('barFill');
   const resultTip  = document.getElementById('resultTip');
   const allScores  = document.getElementById('allScores');
+  const bestBefore = document.getElementById('bestBefore');
+  const bestBeforeValue = document.getElementById('bestBeforeValue');
+  const bestBeforeNote  = document.getElementById('bestBeforeNote');
+
+  // ── Best Before Data ────────────────────────────
+  const bestBeforeData = {
+    'ripe banana':    { value: 'Eat within 1–3 days',  note: 'Keep at room temperature. Refrigerate to slow ripening.' },
+    'unripe banana':  { value: 'Ready in 2–5 days',    note: 'Leave on the counter. Place next to other fruit to speed it up.' },
+    'ripe apple':     { value: 'Eat within 1–2 weeks', note: 'Store in the fridge to keep it crisp and fresh longer.' },
+    'unripe apple':   { value: 'Ready in 3–7 days',    note: 'Leave at room temperature until it softens slightly.' },
+    'ripe avocado':   { value: 'Eat within 1–2 days',  note: 'Refrigerate immediately to slow further ripening.' },
+    'unripe avocado': { value: 'Ready in 3–6 days',    note: 'Leave on the counter. Place next to a banana to ripen faster.' },
+  };
+
+  function getBestBefore(label) {
+    const key = label.toLowerCase();
+    for (const [fruit, data] of Object.entries(bestBeforeData)) {
+      if (key.includes(fruit) || fruit.includes(key)) return data;
+    }
+    // Fallback for ripe/unripe without specific fruit match
+    if (key.includes('unripe')) return { value: 'Not ready yet',    note: 'Leave at room temperature for a few days.' };
+    if (key.includes('ripe'))   return { value: 'Ready to eat now', note: 'Best consumed soon for peak flavour.' };
+    return null;
+  }
 
   let selectedFile = null;
 
@@ -653,19 +730,32 @@
   });
 
   function showResult(category, label, confidenceNum, barWidth, scores, tip) {
-    result.className      = 'result-shown ' + category; // apply colour class
-    result.style.display  = 'block';
-    result.id             = 'result'; // keep id
+    // Reset animation by removing and re-adding the element
+    result.style.display = 'none';
+    void result.offsetWidth; // force reflow so animation restarts
+    result.style.display = 'block';
+
+    result.className      = 'result-shown ' + category;
+    result.id             = 'result';
 
     resultLabel.textContent    = label;
     resultLabel.className      = 'result-label ' + category;
     resultConf.textContent     = confidenceNum ? `Confidence: ${confidenceNum}%` : '';
 
     barFill.className = 'bar-fill ' + category;
-    // Animate bar after a tiny delay so transition fires
     setTimeout(() => { barFill.style.width = barWidth + '%'; }, 50);
 
     resultTip.textContent = tip || '';
+
+    // Best before estimate
+    const bb = getBestBefore(label);
+    if (bb && category !== 'error') {
+      bestBeforeValue.textContent = bb.value;
+      bestBeforeNote.textContent  = bb.note;
+      bestBefore.style.display    = 'block';
+    } else {
+      bestBefore.style.display = 'none';
+    }
 
     // All scores breakdown
     if (scores && Object.keys(scores).length > 1) {
@@ -687,6 +777,91 @@
 
     result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+
+  // ── Jingle — calm looping melody via Web Audio API ──
+  // Browser requires a user gesture before playing audio.
+  // We start on the first click anywhere on the page.
+  let audioCtx = null;
+  let jingleStarted = false;
+
+  // Notes for a gentle, calm melody (frequencies in Hz)
+  // Based on a simple pentatonic scale — naturally soothing
+  const melody = [
+    { freq: 523.25, dur: 0.5 },  // C5
+    { freq: 587.33, dur: 0.5 },  // D5
+    { freq: 659.25, dur: 0.5 },  // E5
+    { freq: 783.99, dur: 0.5 },  // G5
+    { freq: 880.00, dur: 0.5 },  // A5
+    { freq: 783.99, dur: 0.5 },  // G5
+    { freq: 659.25, dur: 0.75 }, // E5
+    { freq: 587.33, dur: 0.5 },  // D5
+    { freq: 523.25, dur: 0.75 }, // C5
+    { freq: 392.00, dur: 0.5 },  // G4
+    { freq: 440.00, dur: 0.5 },  // A4
+    { freq: 523.25, dur: 0.5 },  // C5
+    { freq: 493.88, dur: 0.5 },  // B4
+    { freq: 440.00, dur: 0.5 },  // A4
+    { freq: 392.00, dur: 0.75 }, // G4
+    { freq: 349.23, dur: 0.5 },  // F4
+    { freq: 392.00, dur: 0.5 },  // G4
+    { freq: 440.00, dur: 0.5 },  // A4
+    { freq: 523.25, dur: 1.0 },  // C5 long
+    { freq: 0,      dur: 0.5 },  // rest
+  ];
+
+  function playNote(ctx, freq, startTime, duration) {
+    if (freq === 0) return; // rest
+
+    const osc    = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    osc.type = 'sine'; // sine = softest, most gentle tone
+    osc.frequency.setValueAtTime(freq, startTime);
+
+    // Soft attack and release so notes don't click
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.06, startTime + 0.05);
+    gainNode.gain.setValueAtTime(0.06, startTime + duration - 0.08);
+    gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+  }
+
+  function scheduleMelody(ctx, startTime) {
+    let t = startTime;
+    for (const note of melody) {
+      playNote(ctx, note.freq, t, note.dur);
+      t += note.dur;
+    }
+    return t; // return when melody ends so we can loop
+  }
+
+  function startJingle() {
+    if (jingleStarted) return;
+    jingleStarted = true;
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    let nextStart = audioCtx.currentTime + 0.1;
+
+    function loop() {
+      const melodyDuration = melody.reduce((sum, n) => sum + n.dur, 0);
+      scheduleMelody(audioCtx, nextStart);
+      nextStart += melodyDuration;
+      // Schedule next loop just before current one ends
+      setTimeout(loop, (melodyDuration - 0.5) * 1000);
+    }
+
+    loop();
+  }
+
+  // Start jingle on first user interaction
+  document.addEventListener('click', () => startJingle(), { once: true });
+  document.addEventListener('keydown', () => startJingle(), { once: true });
 </script>
 </body>
 </html>

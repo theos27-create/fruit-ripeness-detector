@@ -9,27 +9,36 @@ app = Flask(__name__)
 # ──────────────────────────────────────────────
 # Load the Teachable Machine model at startup
 # ──────────────────────────────────────────────
-MODEL_PATH  = os.path.join("model", "keras_model.h5")
+MODEL_PATH  = os.path.join("model", "model.tflite")
 LABELS_PATH = os.path.join("model", "labels.txt")
 
-model  = None
-labels = []
+interpreter = None
+labels      = []
 
 def load_model():
-    """Load the Keras model and class labels exported from Teachable Machine."""
-    global model, labels
+    """Load the TFLite model and class labels exported from Teachable Machine."""
+    global interpreter, labels
 
-    # keras is imported here so the app still runs (for front-end work)
-    # even when the model file hasn't been added yet.
     try:
-        from tensorflow.keras.models import load_model as keras_load
-        model = keras_load(MODEL_PATH, compile=False)
+        import importlib
+        # Try tflite_runtime first, fall back to tensorflow
+        try:
+            import tflite_runtime.interpreter as tflite
+            interpreter = tflite.Interpreter(model_path=MODEL_PATH)
+        except ImportError:
+            import tensorflow as tf
+            interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
+
+        interpreter.allocate_tensors()
+
         with open(LABELS_PATH, "r") as f:
             labels = [line.strip() for line in f.readlines()]
+
         print(f"✅  Model loaded — classes: {labels}")
+
     except Exception as e:
         print(f"⚠️  Model not loaded yet: {e}")
-        print("    Add keras_model.h5 and labels.txt to the /model folder.")
+        print("    Add model.tflite and labels.txt to the /model folder.")
 
 
 def prepare_image(image_bytes: bytes) -> np.ndarray:
@@ -60,29 +69,34 @@ def predict():
     if "image" not in request.files:
         return jsonify({"error": "No image file provided"}), 400
 
-    file  = request.files["image"]
+    file = request.files["image"]
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
-    if model is None:
-        # Model not loaded — return a friendly placeholder so the
-        # front-end can still be tested before training is complete.
+    if interpreter is None:
         return jsonify({
             "label":      "Model not loaded yet",
             "confidence": 0,
-            "tip":        "Add your keras_model.h5 and labels.txt to the /model folder."
+            "tip":        "Add your model.tflite and labels.txt to the /model folder."
         }), 200
 
     try:
         image_bytes = file.read()
         data        = prepare_image(image_bytes)
-        predictions = model.predict(data)[0]           # array of probabilities
 
-        best_idx    = int(np.argmax(predictions))
-        best_label  = labels[best_idx].split(" ", 1)[-1]  # strip the leading index
-        confidence  = float(predictions[best_idx]) * 100
+        # Run TFLite inference
+        input_details  = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
 
-        # Build a readable tip based on the prediction
+        interpreter.set_tensor(input_details[0]['index'], data)
+        interpreter.invoke()
+
+        predictions = interpreter.get_tensor(output_details[0]['index'])[0]
+
+        best_idx   = int(np.argmax(predictions))
+        best_label = labels[best_idx].split(" ", 1)[-1]  # strip leading index
+        confidence = float(predictions[best_idx]) * 100
+
         tip = get_tip(best_label, confidence)
 
         return jsonify({

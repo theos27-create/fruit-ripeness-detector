@@ -1,6 +1,6 @@
-# Replace this file with the labels.txt exported from Teachable Machine.
-# Example contents after training:
-# 0 Ripe Banana
-# 1 Unripe Banana
-# 2 Ripe Strawberry
-# 3 Unripe Strawberry
+0 Unripe Banana
+1 Ripe Banana
+2 Ripe Apple
+3 Unripe Apple
+4 Ripe Avocado
+5 Unripe Avocado
