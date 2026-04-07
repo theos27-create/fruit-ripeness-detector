@@ -7,7 +7,6 @@ venv/
 env/
 
 # Model files (large - add manually after training)
-model/keras_model.h5
 
 # Flask
 instance/

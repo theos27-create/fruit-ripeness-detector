@@ -502,6 +502,101 @@
       border-top: 1px solid rgba(59,42,26,.08);
     }
 
+    /* ─── TEST IMAGES SECTION ──────────────────────── */
+    .test-images-section {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: var(--cream);
+    }
+
+    .test-images-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--bark);
+      margin-bottom: 0.6rem;
+    }
+
+    .test-sub {
+      font-size: 0.95rem;
+      color: #6b5240;
+      max-width: 500px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+
+    .fruit-groups {
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .fruit-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .fruit-group-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--bark);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .test-grid {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .test-card {
+      cursor: pointer;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(74,103,65,.2);
+      width: 120px;
+      background: #fff;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      box-shadow: 0 2px 10px rgba(59,42,26,.08);
+    }
+
+    .test-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--leaf);
+      box-shadow: 0 8px 24px rgba(74,103,65,.2);
+    }
+
+    .test-card.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .test-card img {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .test-card-label {
+      padding: 0.35rem 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--moss);
+      background: rgba(74,103,65,.07);
+      text-align: center;
+    }
+
+    .test-note {
+      font-size: 0.82rem;
+      color: #8a6f55;
+      margin-top: 0.5rem;
+    }
+
     /* ─── RESPONSIVE ───────────────────────────────── */
     @media (max-width: 600px) {
       header { padding: 1.5rem; flex-direction: column; gap: .3rem; }
@@ -611,6 +706,71 @@
         <p>Instantly see whether your fruit is ripe or not, with a confidence score and what to do next.</p>
       </div>
     </div>
+  </section>
+
+  <!-- TEST IMAGES -->
+  <section class="test-images-section">
+    <h2>Try It Yourself</h2>
+    <p class="test-sub">Not sure what to upload? Click any image below to load it directly into the scanner — no downloading needed.</p>
+
+    <div class="fruit-groups">
+
+      <div class="fruit-group">
+        <div class="fruit-group-title">🍌 Banana</div>
+        <div class="test-grid">
+          <div class="test-card" onclick="loadTestImage(this)"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Platano.jpg/320px-Banana-Platano.jpg"
+               data-label="Ripe Banana">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Platano.jpg/320px-Banana-Platano.jpg" alt="Ripe Banana" loading="lazy"/>
+            <div class="test-card-label">Ripe</div>
+          </div>
+          <div class="test-card" onclick="loadTestImage(this)"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Hapus_Mango.jpg/240px-Hapus_Mango.jpg"
+               data-label="Unripe Banana">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Unripe_Bananas.jpg/320px-Unripe_Bananas.jpg" alt="Unripe Banana" loading="lazy"/>
+            <div class="test-card-label">Unripe</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fruit-group">
+        <div class="fruit-group-title">🍎 Apple</div>
+        <div class="test-grid">
+          <div class="test-card" onclick="loadTestImage(this)"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/320px-Red_Apple.jpg"
+               data-label="Ripe Apple">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/320px-Red_Apple.jpg" alt="Ripe Apple" loading="lazy"/>
+            <div class="test-card-label">Ripe</div>
+          </div>
+          <div class="test-card" onclick="loadTestImage(this)"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Unripe_green_apple.jpg/320px-Unripe_green_apple.jpg"
+               data-label="Unripe Apple">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Unripe_green_apple.jpg/320px-Unripe_green_apple.jpg" alt="Unripe Apple" loading="lazy"/>
+            <div class="test-card-label">Unripe</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fruit-group">
+        <div class="fruit-group-title">🥑 Avocado</div>
+        <div class="test-grid">
+          <div class="test-card" onclick="loadTestImage(this)"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Ripe_avocado.jpg/320px-Ripe_avocado.jpg"
+               data-label="Ripe Avocado">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Ripe_avocado.jpg/320px-Ripe_avocado.jpg" alt="Ripe Avocado" loading="lazy"/>
+            <div class="test-card-label">Ripe</div>
+          </div>
+          <div class="test-card" onclick="loadTestImage(this)"
+               data-src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Avocado_on_white_background.jpg/320px-Avocado_on_white_background.jpg"
+               data-label="Unripe Avocado">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Avocado_on_white_background.jpg/320px-Avocado_on_white_background.jpg" alt="Unripe Avocado" loading="lazy"/>
+            <div class="test-card-label">Unripe</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <p class="test-note">💡 Click any fruit photo above and it will load straight into the scanner — then just hit Analyse Ripeness!</p>
   </section>
 
   <footer>
@@ -776,6 +936,31 @@
     }
 
     result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── Test image loader ───────────────────────────
+  // Fetches the clicked sample image, converts it to a
+  // File object, and loads it straight into the scanner.
+  async function loadTestImage(card) {
+    const src   = card.dataset.src;
+    const label = card.dataset.label;
+
+    card.classList.add('loading');
+
+    try {
+      const response = await fetch(src);
+      const blob     = await response.blob();
+      const file     = new File([blob], label.replace(' ', '_') + '.jpg', { type: blob.type });
+
+      handleFile(file);
+
+      // Scroll up to the upload card so teacher can see it loaded
+      document.querySelector('.card-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (e) {
+      alert('Could not load that image. Try saving it manually and uploading it instead.');
+    }
+
+    card.classList.remove('loading');
   }
 
   // ── Jingle — calm looping melody via Web Audio API ──
