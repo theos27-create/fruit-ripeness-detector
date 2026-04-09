@@ -627,9 +627,10 @@
 
     <div class="fruit-pills">
       <span class="pill">🍌 Banana</span>
-      <span class="pill">🍓 Strawberry</span>
+      <span class="pill">🍎 Apple</span>
       <span class="pill">🥑 Avocado</span>
     </div>
+    <!-- Note: strawberry pill removed — model trained on banana, apple, avocado -->
   </section>
 
   <!-- UPLOAD CARD -->
@@ -939,28 +940,48 @@
   }
 
   // ── Test image loader ───────────────────────────
-  // Fetches the clicked sample image, converts it to a
-  // File object, and loads it straight into the scanner.
-  async function loadTestImage(card) {
+  // Loads the clicked sample image into the scanner by
+  // drawing it to a canvas and converting to a blob.
+  // This avoids CORS issues with external image URLs.
+  function loadTestImage(card) {
     const src   = card.dataset.src;
     const label = card.dataset.label;
 
     card.classList.add('loading');
 
-    try {
-      const response = await fetch(src);
-      const blob     = await response.blob();
-      const file     = new File([blob], label.replace(' ', '_') + '.jpg', { type: blob.type });
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
 
-      handleFile(file);
+    img.onload = function() {
+      // Draw to canvas to get a blob we can use as a File
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
 
-      // Scroll up to the upload card so teacher can see it loaded
+      canvas.toBlob(function(blob) {
+        const file = new File([blob], label.replace(/ /g, '_') + '.jpg', { type: 'image/jpeg' });
+        handleFile(file);
+        document.querySelector('.card-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.remove('loading');
+      }, 'image/jpeg');
+    };
+
+    img.onerror = function() {
+      card.classList.remove('loading');
+      // Fallback: just set the preview src directly and let the user scan manually
+      preview.src = src;
+      dropZone.style.display    = 'none';
+      previewWrap.style.display = 'block';
+      result.style.display      = 'none';
+      scanBtn.disabled = false;
       document.querySelector('.card-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } catch (e) {
-      alert('Could not load that image. Try saving it manually and uploading it instead.');
-    }
+      alert('Image loaded for preview — hit Analyse Ripeness to scan it!');
+    };
 
-    card.classList.remove('loading');
+    // Add a cache-busting proxy hint for Wikimedia
+    img.src = src;
   }
 
   // ── Jingle — calm looping melody via Web Audio API ──
