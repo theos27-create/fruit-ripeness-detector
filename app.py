@@ -59,7 +59,23 @@ def prepare_image(image_bytes: bytes) -> np.ndarray:
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html") 
+@app.route("/proxy-image")
+def proxy_image():
+    """Fetch an external image server-side to avoid CORS issues."""
+    import urllib.request
+    url = request.args.get("url", "")
+    if not url:
+        return "No URL provided", 400
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read()
+            content_type = resp.headers.get("Content-Type", "image/jpeg")
+        from flask import Response
+        return Response(data, content_type=content_type)
+    except Exception as e:
+        return str(e), 500
 
 
 @app.route("/predict", methods=["POST"])
